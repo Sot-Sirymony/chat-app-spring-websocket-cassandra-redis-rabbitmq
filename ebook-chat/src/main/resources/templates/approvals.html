@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
+	layout:decorator="layout/default">
+<head>
+</head>
+<body>
+	<div class="container" layout:fragment="content">
+		<div sec:authorize="hasRole('ROLE_ADMIN')">
+			<h3 class="text-center">Pending approval requests</h3>
+			<hr />
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Requester</th>
+						<th>Recipient</th>
+						<th>Room</th>
+						<th>Content (preview)</th>
+						<th>Requested at</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody id="pendingBody">
+					<tr><td colspan="7" class="text-center">Loading...</td></tr>
+				</tbody>
+			</table>
+			<hr />
+		</div>
+		<h3 class="text-center">My approval requests</h3>
+		<p class="text-muted text-center small">Status of file/message transfer requests you submitted.</p>
+		<hr />
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Recipient</th>
+					<th>Room</th>
+					<th>Content (preview)</th>
+					<th>Status</th>
+					<th>Requested at</th>
+					<th>Decided at</th>
+				</tr>
+			</thead>
+			<tbody id="myRequestsBody">
+				<tr><td colspan="7" class="text-center">Loading...</td></tr>
+			</tbody>
+		</table>
+	</div>
+
+	<script layout:fragment="script">
+		$(document).ready(function() {
+			function loadPending() {
+				if ($("#pendingBody").length === 0) return;
+				$.get("/api/file-requests/pending").done(function(list) {
+					var $tbody = $("#pendingBody").empty();
+					if (!list || list.length === 0) {
+						$tbody.append('<tr><td colspan="7" class="text-center">No pending requests.</td></tr>');
+						return;
+					}
+					$.each(list, function(i, r) {
+						var preview = (r.contentText || "").substring(0, 50);
+						if ((r.contentText || "").length > 50) preview += "...";
+						var $tr = $("<tr />");
+						$tr.append($("<td />").text(r.id));
+						$tr.append($("<td />").text(r.requester));
+						$tr.append($("<td />").text(r.recipient || "(public)"));
+						$tr.append($("<td />").text(r.roomId || ""));
+						$tr.append($("<td />").text(preview));
+						$tr.append($("<td />").text(r.requestedAt ? new Date(r.requestedAt).toLocaleString() : ""));
+						var $actions = $("<td />");
+						$actions.append($('<button type="button" class="btn btn-success btn-sm">Approve</button>').on("click", function() { approve(r.id); }));
+						$actions.append(" ");
+						$actions.append($('<button type="button" class="btn btn-danger btn-sm">Reject</button>').on("click", function() { reject(r.id); }));
+						$tr.append($actions);
+						$tbody.append($tr);
+					});
+				}).fail(function() {
+					$("#pendingBody").empty().append('<tr><td colspan="7" class="text-center text-danger">Failed to load.</td></tr>');
+				});
+			}
+			function loadMyRequests() {
+				$.get("/api/file-requests/my").done(function(list) {
+					var $tbody = $("#myRequestsBody").empty();
+					if (!list || list.length === 0) {
+						$tbody.append('<tr><td colspan="7" class="text-center">No requests.</td></tr>');
+						return;
+					}
+					$.each(list, function(i, r) {
+						var preview = (r.contentText || "").substring(0, 50);
+						if ((r.contentText || "").length > 50) preview += "...";
+						var $tr = $("<tr />");
+						$tr.append($("<td />").text(r.id));
+						$tr.append($("<td />").text(r.recipient || "(public)"));
+						$tr.append($("<td />").text(r.roomId || ""));
+						$tr.append($("<td />").text(preview));
+						var status = (r.status || "").toLowerCase();
+						var $status = $("<td />");
+						if (status === "pending") $status.append($('<span class="label label-warning">PENDING</span>'));
+						else if (status === "approved") $status.append($('<span class="label label-success">APPROVED</span>'));
+						else if (status === "rejected") $status.append($('<span class="label label-danger">REJECTED</span>'));
+						else $status.text(r.status || "");
+						$tr.append($status);
+						$tr.append($("<td />").text(r.requestedAt ? new Date(r.requestedAt).toLocaleString() : ""));
+						$tr.append($("<td />").text(r.decidedAt ? new Date(r.decidedAt).toLocaleString() : "—"));
+						$tbody.append($tr);
+					});
+				}).fail(function() {
+					$("#myRequestsBody").empty().append('<tr><td colspan="7" class="text-center text-danger">Failed to load.</td></tr>');
+				});
+			}
+			function approve(id) {
+				$.post("/api/file-requests/" + id + "/approve").done(function() { loadPending(); loadMyRequests(); });
+			}
+			function reject(id) {
+				$.post("/api/file-requests/" + id + "/reject").done(function() { loadPending(); loadMyRequests(); });
+			}
+			loadPending();
+			loadMyRequests();
+		});
+	</script>
+</body>
+</html>

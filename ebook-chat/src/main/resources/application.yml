@@ -38,12 +38,49 @@ spring:
 flyway.enabled: true      
 security.headers.cache: false 
 server.session.timeout: 600
+# Avoid actuator requiring its AuditEventRepository (we use our own Cassandra audit repo)
+endpoints.auditevents.enabled: false
 
 ebook:
   chat:
     relay:
       host: localhost
       port: 61613
+    jwt:
+      secret: ${JWT_SECRET:ebook-chat-internal-secret-key-min-256-bits-for-hs256}
+      issuer: ebook-chat
+      expiration-ms: 86400000
+    minio:
+      endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+      bucket: ${MINIO_BUCKET:ebook-chat-files}
+      access-key: ${MINIO_ACCESS_KEY:minioadmin}
+      secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    abac:
+      trusted-device-patterns: []
+      risk-score-threshold: 0
+    file-encryption:
+      enabled: false
+      key-base64: ${FILE_ENCRYPTION_KEY_BASE64:}
+    dlp:
+      rules:
+        - id: pii-ssn
+          type: REGEX
+          pattern: "\\b\\d{3}-\\d{2}-\\d{4}\\b"
+          riskLevel: HIGH
+        - id: keyword-confidential
+          type: KEYWORD
+          pattern: "confidential"
+          riskLevel: MEDIUM
+        - id: keyword-secret
+          type: KEYWORD
+          pattern: "secret"
+          riskLevel: MEDIUM
+    presidio:
+      enabled: false
+      analyzer-base-url: ${PRESIDIO_ANALYZER_URL:http://localhost:5002}
+      timeout-ms: 5000
+      language: en
+      score-threshold: 0.5
 
 ---
 
@@ -83,3 +120,24 @@ ebook:
     relay:
       host: localhost
       port: 61613
+    jwt:
+      secret: ${JWT_SECRET:ebook-chat-internal-secret-key-min-256-bits-for-hs256}
+      issuer: ebook-chat
+      expiration-ms: 86400000
+    minio:
+      endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+      bucket: ${MINIO_BUCKET:ebook-chat-files}
+      access-key: ${MINIO_ACCESS_KEY:minioadmin}
+      secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    abac:
+      trusted-device-patterns: []
+      risk-score-threshold: 0
+    file-encryption:
+      enabled: false
+      key-base64: ""
+    dlp:
+      rules: []
+    presidio:
+      enabled: false
+      analyzer-base-url: http://localhost:5002
+      timeout-ms: 3000

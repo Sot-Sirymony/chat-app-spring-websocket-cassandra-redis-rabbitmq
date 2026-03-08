@@ -1,7 +1,9 @@
 package br.com.jorgeacetozi.ebookChat.configuration;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.session.ExpiringSession;
@@ -19,6 +21,14 @@ public class WebSocketConfigSpringSession extends AbstractSessionWebSocketMessag
 
 	@Value("${ebook.chat.relay.port}")
 	private Integer relayPort;
+
+	@Autowired
+	private JwtChannelInterceptor jwtChannelInterceptor;
+
+	@Override
+	public void configureClientInboundChannel(ChannelRegistration registration) {
+		registration.setInterceptors(jwtChannelInterceptor);
+	}
 
 	protected void configureStompEndpoints(StompEndpointRegistry registry) {
 		registry.addEndpoint("/ws").withSockJS();

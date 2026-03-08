@@ -37,7 +37,10 @@ public class User {
 	@ManyToMany(fetch=FetchType.EAGER)
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "username"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles = new HashSet<>();
-	
+
+	/** Department for ABAC (BR-2.1). */
+	private String department;
+
 	public User () {
 		
 	}
@@ -78,5 +81,13 @@ public class User {
 	}
 	public void addRoles(Collection<Role> roles) {
 		this.roles.addAll(roles);
+	}
+
+	public String getDepartment() {
+		return department;
+	}
+
+	public void setDepartment(String department) {
+		this.department = department;
 	}
 }

@@ -25,7 +25,12 @@ public class InstantMessage {
 	private String fromUser;
 	private String toUser;
 	private String text;
-	
+
+	/** Transient: DLP warning message for client (not persisted). BR-4.1 */
+	private transient String dlpWarning;
+	/** Transient: file id from MinIO upload for attach/send (not persisted). BR-3.3 */
+	private transient String fileRef;
+
 	public InstantMessage() { 
 		this.date = new Date();
 	}
@@ -72,6 +77,10 @@ public class InstantMessage {
 	public void setText(String text) {
 		this.text = text;
 	}
+	public String getDlpWarning() { return dlpWarning; }
+	public void setDlpWarning(String dlpWarning) { this.dlpWarning = dlpWarning; }
+	public String getFileRef() { return fileRef; }
+	public void setFileRef(String fileRef) { this.fileRef = fileRef; }
 
 	@Override
 	public int hashCode() {

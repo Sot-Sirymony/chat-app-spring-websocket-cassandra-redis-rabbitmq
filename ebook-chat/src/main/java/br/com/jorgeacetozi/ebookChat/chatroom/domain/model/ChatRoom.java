@@ -6,15 +6,20 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
+import br.com.jorgeacetozi.ebookChat.chatroom.domain.model.RoomClassification;
 import com.google.common.annotations.VisibleForTesting;
 
 @RedisHash("chatrooms")
 public class ChatRoom {
-	
+
 	@Id
 	private String id;
 	private String name;
 	private String description;
+	/** BR-2.2: room classification for policy-driven governance */
+	private RoomClassification classification = RoomClassification.PUBLIC;
+	/** Comma-separated department names allowed for RESTRICTED rooms */
+	private String allowedDepartments;
 	private List<ChatRoomUser> connectedUsers = new ArrayList<>();
 	
 	public ChatRoom() {
@@ -58,6 +63,11 @@ public class ChatRoom {
 	public int getNumberOfConnectedUsers(){
 		return this.connectedUsers.size();
 	}
+
+	public RoomClassification getClassification() { return classification; }
+	public void setClassification(RoomClassification classification) { this.classification = classification; }
+	public String getAllowedDepartments() { return allowedDepartments; }
+	public void setAllowedDepartments(String allowedDepartments) { this.allowedDepartments = allowedDepartments; }
 
 	@Override
 	public int hashCode() {

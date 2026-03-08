@@ -51,6 +51,19 @@
 								<label for="newChatRoomDescription" class="control-label" th:text="#{chat.new.chatroom.description}">Description</label>
 								<textarea class="form-control" id="newChatRoomDescription"></textarea>
 							</div>
+							<div class="form-group">
+								<label for="newChatRoomClassification" class="control-label">Classification</label>
+								<select class="form-control" id="newChatRoomClassification">
+									<option value="PUBLIC">Public</option>
+									<option value="INTERNAL">Internal</option>
+									<option value="CONFIDENTIAL">Confidential</option>
+									<option value="RESTRICTED">Restricted</option>
+								</select>
+							</div>
+							<div class="form-group" id="allowedDeptsGroup">
+								<label for="newChatRoomAllowedDepartments" class="control-label">Allowed departments (comma-separated, for Restricted)</label>
+								<input type="text" class="form-control" id="newChatRoomAllowedDepartments" placeholder="e.g. IT, HR" />
+							</div>
 						</form>
 					</div>
 					<div class="modal-footer">
@@ -70,11 +83,15 @@
 			var btnCreateNewChatRoom = $("#btnCreateNewChatRoom");
 			var txtNewChatRoomName = $("#newChatroomName");
 			var txtNewChatRoomDescription = $("#newChatRoomDescription");
+			var txtClassification = $("#newChatRoomClassification");
+			var txtAllowedDepartments = $("#newChatRoomAllowedDepartments");
 
 			function createNewChatRoom() {
 				var newChatRoom = {
 					'name' : txtNewChatRoomName.val(),
-					'description' : txtNewChatRoomDescription.val()
+					'description' : txtNewChatRoomDescription.val(),
+					'classification' : txtClassification.val(),
+					'allowedDepartments' : txtAllowedDepartments.val() || null
 				};
 
 				$.ajax({

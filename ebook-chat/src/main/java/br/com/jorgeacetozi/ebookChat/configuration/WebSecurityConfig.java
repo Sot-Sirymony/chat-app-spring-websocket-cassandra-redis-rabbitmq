@@ -2,9 +2,11 @@ package br.com.jorgeacetozi.ebookChat.configuration;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableConfigurationProperties({ JwtProperties.class, MinioProperties.class, AbacProperties.class, FileEncryptionProperties.class, br.com.jorgeacetozi.ebookChat.dlp.configuration.DlpProperties.class, br.com.jorgeacetozi.ebookChat.dlp.configuration.PresidioProperties.class })
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
     @Autowired
@@ -32,9 +35,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	        	.logoutSuccessUrl("/")
 	        	.and()
 	        .authorizeRequests()
-	        	.antMatchers("/login", "/new-account", "/").permitAll()
+	        	.antMatchers("/login", "/new-account", "/", "/api/auth/token").permitAll()
+	        	.antMatchers("/approvals").authenticated()
+	        	.antMatchers("/analytics").hasRole("ADMIN")
 	        	.antMatchers(HttpMethod.POST, "/chatroom").hasRole("ADMIN")
+	        	.antMatchers("/metrics", "/metrics/**").hasRole("ADMIN")
 	        	.anyRequest().authenticated();
+	}
+
+	@Bean
+	@Override
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
 	}
 	
     @Autowired

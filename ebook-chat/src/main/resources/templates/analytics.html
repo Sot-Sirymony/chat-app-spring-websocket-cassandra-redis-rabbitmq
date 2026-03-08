@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout/default">
+<head>
+	<title>Security analytics</title>
+</head>
+<body>
+	<div class="container" layout:fragment="content">
+		<h3 class="text-center">Security analytics (T8.1.2)</h3>
+		<p class="text-muted text-center small">Risky users and rooms by deny count (since app start).</p>
+		<hr />
+		<div class="row">
+			<div class="col-md-6">
+				<h4>Risky users (high deny count)</h4>
+				<table class="table table-striped">
+					<thead>
+						<tr><th>Username</th><th>Deny count</th></tr>
+					</thead>
+					<tbody id="riskyUsersBody">
+						<tr><td colspan="2" class="text-center">Loading...</td></tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="col-md-6">
+				<h4>Risky rooms (high deny count)</h4>
+				<table class="table table-striped">
+					<thead>
+						<tr><th>Room ID</th><th>Deny count</th></tr>
+					</thead>
+					<tbody id="riskyRoomsBody">
+						<tr><td colspan="2" class="text-center">Loading...</td></tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<script layout:fragment="script">
+		$(document).ready(function() {
+			$.get("/api/analytics/risky-users?limit=20").done(function(list) {
+				var $tbody = $("#riskyUsersBody").empty();
+				if (!list || list.length === 0) {
+					$tbody.append('<tr><td colspan="2" class="text-center">No data.</td></tr>');
+					return;
+				}
+				$.each(list, function(i, e) {
+					$tbody.append($("<tr />").append($("<td />").text(e.username)).append($("<td />").text(e.denyCount)));
+				});
+			}).fail(function() {
+				$("#riskyUsersBody").empty().append('<tr><td colspan="2" class="text-center text-danger">Failed to load.</td></tr>');
+			});
+			$.get("/api/analytics/risky-rooms?limit=20").done(function(list) {
+				var $tbody = $("#riskyRoomsBody").empty();
+				if (!list || list.length === 0) {
+					$tbody.append('<tr><td colspan="2" class="text-center">No data.</td></tr>');
+					return;
+				}
+				$.each(list, function(i, e) {
+					$tbody.append($("<tr />").append($("<td />").text(e.roomId)).append($("<td />").text(e.denyCount)));
+				});
+			}).fail(function() {
+				$("#riskyRoomsBody").empty().append('<tr><td colspan="2" class="text-center text-danger">Failed to load.</td></tr>');
+			});
+		});
+	</script>
+</body>
+</html>

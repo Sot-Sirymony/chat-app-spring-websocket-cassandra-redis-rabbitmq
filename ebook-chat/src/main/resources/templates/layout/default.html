@@ -38,7 +38,10 @@
         <li class="dropdown" sec:authorize="isAuthenticated()">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span sec:authentication="name"></span></a>
           <ul class="dropdown-menu">
-          	<li><a id="newChatRoom" href="#" data-toggle="modal" data-target="#newChatRoomModal"  th:text="#{menu.new.chatrooms}" sec:authorize="hasRole('ROLE_ADMIN')">New Chat Room</a></li>
+          <li><a id="newChatRoom" href="#" data-toggle="modal" data-target="#newChatRoomModal"  th:text="#{menu.new.chatrooms}" sec:authorize="hasRole('ROLE_ADMIN')">New Chat Room</a></li>
+          	<li><a href="/approvals" sec:authorize="hasRole('ROLE_ADMIN')">Pending approvals</a></li>
+          	<li><a href="/analytics" sec:authorize="hasRole('ROLE_ADMIN')">Security analytics</a></li>
+          	<li><a href="/approvals">My approval requests</a></li>
           	<li><a href="/logout" th:text="#{menu.logout}">Logout</a></li>
           </ul>
         </li>

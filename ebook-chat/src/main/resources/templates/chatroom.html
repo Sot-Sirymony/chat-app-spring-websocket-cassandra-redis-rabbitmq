@@ -77,12 +77,15 @@
 		</div>
 		<div class="col-lg-12 col-sm-6">
 			<div class="input-group input-group-lg">
-				<span class="input-group-addon" id="sendTo">public</span> 
-				<input id="message" type="text" class="form-control" aria-describedby="sendTo" th:placeholder="#{chatroom.message.placeholder}" /> 
+				<span class="input-group-addon" id="sendTo">public</span>
+				<input type="file" id="fileInput" style="display: none" />
+				<input id="message" type="text" class="form-control" aria-describedby="sendTo" th:placeholder="#{chatroom.message.placeholder}" />
 				<span class="input-group-btn">
+					<button id="attach" class="btn btn-default" type="button" title="Attach file">&#128206; Attach</button>
 					<button id="send" class="btn btn-default" type="button" th:text="#{chatroom.send}">Send</button>
 				</span>
 			</div>
+			<div id="attachedFile" class="small text-muted" style="margin-top: 4px; display: none;"></div>
 		</div>
 	</div>
 </div>
@@ -99,17 +102,29 @@ $(document).ready(function() {
 	var stompClient = null;
 	var socket = null;
 	var chatRoomId = /*[[${chatRoom.id}]]*/;
+	var roomClassification = /*[[${chatRoom.classification != null ? chatRoom.classification.name() : 'PUBLIC'}]]*/ 'PUBLIC';
 	var inputMessage = $("#message");
 	var btnSend = $("#send");
 	var btnDisconnect = $("#disconnect");
 	var newMessages = $("#newMessages");
 	var spanSendTo = $("#sendTo");
 	var btnPublic = $("#public");
-	
+	var attachedFileId = null;
+	var attachedFileName = null;
+	var $attachedFile = $("#attachedFile");
+
 	function connect() {
 		socket = new SockJS('/ws');
 		stompClient = Stomp.over(socket);
-		stompClient.connect({ 'chatRoomId' : chatRoomId }, stompSuccess, stompFailure);
+		var headers = { 'chatRoomId' : chatRoomId };
+		if (typeof navigator !== 'undefined' && navigator.userAgent) {
+			headers['device-type'] = navigator.userAgent;
+		}
+		var token = localStorage.getItem('ebookChatToken');
+		if (token) {
+			headers['Authorization'] = 'Bearer ' + token;
+		}
+		stompClient.connect(headers, stompSuccess, stompFailure);
 	}
 	
 	function stompSuccess(frame) {
@@ -122,6 +137,18 @@ $(document).ready(function() {
 		stompClient.subscribe('/topic/' + chatRoomId + '.public.messages', publicMessages);
 		stompClient.subscribe('/user/queue/' + chatRoomId + '.private.messages', privateMessages);
 		stompClient.subscribe('/topic/' + chatRoomId + '.connected.users', updateConnectedUsers);
+		stompClient.subscribe('/user/queue/policy-denial', policyDenial);
+		stompClient.subscribe('/user/queue/recipient-warning', recipientWarning);
+	}
+	function policyDenial(response) {
+		var body = JSON.parse(response.body);
+		var reason = body.reason || 'Message blocked by policy.';
+		errorMessage(reason);
+	}
+	function recipientWarning(response) {
+		var body = JSON.parse(response.body);
+		var reason = body.reason || 'Recipient may not be in this room.';
+		errorMessage(reason);
 	}
 	
 	function stompFailure(error) {
@@ -175,14 +202,55 @@ $(document).ready(function() {
 	}
 	
 	function appendPublicMessage(instantMessage) {
+		var $p;
+		var htmlText = linkifyDownload(escapeHtml(instantMessage.text));
 		if (instantMessage.fromUser == "admin") {
-			newMessages
-			.append('<p class="alert alert-warning"><strong>' + instantMessage.fromUser + '</strong>: ' + 
-					instantMessage.text + '</p>')
+			$p = $('<p class="alert alert-warning"><strong>' + instantMessage.fromUser + '</strong>: ' + htmlText + '</p>');
 		} else {
-			newMessages
-				.append("<p>" + instantMessage.fromUser + ": " + instantMessage.text + "</p>")
+			$p = $("<p>" + instantMessage.fromUser + ": " + htmlText + "</p>");
 		}
+		newMessages.append($p);
+		if (instantMessage.dlpWarning) {
+			newMessages.append('<p class="alert alert-info small">&#9888; ' + escapeHtml(instantMessage.dlpWarning) + '</p>');
+		}
+		bindDownloadLinks();
+	}
+	function bindDownloadLinks() {
+		$(document).off("click.fileDownload", "a.file-download-link");
+		$(document).on("click.fileDownload", "a.file-download-link", function(e) {
+			var url = $(this).data("download-url");
+			var token = localStorage.getItem("ebookChatToken");
+			if (url && token) {
+				e.preventDefault();
+				var opts = { credentials: "same-origin", headers: { "Authorization": "Bearer " + token } };
+				fetch(url, opts).then(function(r) {
+					if (!r.ok) throw new Error("Download failed");
+					return r.blob();
+				}).then(function(blob) {
+					var a = document.createElement("a");
+					a.href = window.URL.createObjectURL(blob);
+					a.download = "attachment";
+					a.click();
+					window.URL.revokeObjectURL(a.href);
+				}).catch(function() { errorMessage("Download failed."); });
+			}
+		});
+	}
+	function linkifyDownload(text) {
+		if (!text) return '';
+		return text.replace(/\[\s*Download[^\]]*\]\s*\(\s*(\/api\/files\/[^)]+\/download)\s*\)/gi,
+			'<a href="$1" class="file-download-link" data-download-url="$1" target="_blank" rel="noopener">Download attachment</a>');
+	}
+	function formatSize(bytes) {
+		if (bytes < 1024) return bytes + " B";
+		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+		return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+	}
+	function escapeHtml(s) {
+		if (!s) return '';
+		var div = document.createElement('div');
+		div.textContent = s;
+		return div.innerHTML;
 	}
 	
 	function privateMessages(message) {
@@ -192,34 +260,69 @@ $(document).ready(function() {
 	}
 	
 	function appendPrivateMessage(instantMessage) {
-		newMessages
-		.append('<p class="alert alert-info">[private] ' + 
-				'<strong>' + instantMessage.fromUser + 
-				' <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> ' + 
-				instantMessage.toUser + '</strong>: ' + 
-				instantMessage.text + '</p>');
+		var htmlText = linkifyDownload(escapeHtml(instantMessage.text));
+		newMessages.append('<p class="alert alert-info">[private] ' +
+				'<strong>' + instantMessage.fromUser +
+				' <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> ' +
+				instantMessage.toUser + '</strong>: ' + htmlText + '</p>');
+		if (instantMessage.dlpWarning) {
+			newMessages.append('<p class="alert alert-info small">&#9888; ' + escapeHtml(instantMessage.dlpWarning) + '</p>');
+		}
+		bindDownloadLinks();
 	}
 	
+	var undoSendTimeout = null;
+
 	function sendMessage() {
 		var instantMessage;
-		
-		if (inputMessageIsEmpty()) {
+
+		if (inputMessageIsEmpty() && !attachedFileId) {
 			inputMessage.focus();
 			return;
 		}
+		var isPrivate = spanSendTo.text() !== "public";
+		var isHighRiskRoom = roomClassification === "CONFIDENTIAL" || roomClassification === "RESTRICTED";
+		if (isHighRiskRoom || isPrivate) {
+			var target = isPrivate ? spanSendTo.text() : "this room (" + roomClassification + ")";
+			if (!confirm("Send to " + target + "? This " + (isPrivate ? "is a private message." : "room is " + roomClassification + ".") + " Continue?")) {
+				return;
+			}
+		}
 
 		if (spanSendTo.text() == "public") {
-			instantMessage = {
-				'text' : inputMessage.val()
-			}
+			instantMessage = { 'text' : inputMessage.val() };
 		} else {
 			instantMessage = {
 				'text' : inputMessage.val(),
 				'toUser' : spanSendTo.text()
-			}
+			};
 		}
-		stompClient.send("/chatroom/send.message", {}, JSON.stringify(instantMessage));
+		if (attachedFileId) {
+			instantMessage.fileRef = attachedFileId;
+			attachedFileId = null;
+			attachedFileName = null;
+			$attachedFile.hide().text("");
+		}
+		var textToShow = (instantMessage.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		var recipientLabel = isPrivate ? " to " + spanSendTo.text() : " (public)";
+		var $pending = $('<p class="pending-send">' + textToShow + recipientLabel + ' <button type="button" class="btn btn-xs btn-warning undo-send">Undo</button></p>');
+		newMessages.append($pending);
+		scrollDownMessagesPanel();
 		inputMessage.val("").focus();
+
+		undoSendTimeout = setTimeout(function() {
+			undoSendTimeout = null;
+			$pending.remove();
+			stompClient.send("/chatroom/send.message", {}, JSON.stringify(instantMessage));
+		}, 3000);
+
+		$pending.find(".undo-send").on("click", function() {
+			if (undoSendTimeout) {
+				clearTimeout(undoSendTimeout);
+				undoSendTimeout = null;
+			}
+			$pending.remove();
+		});
 	}
 	
 	function inputMessageIsEmpty() {
@@ -273,6 +376,36 @@ $(document).ready(function() {
         });
 	}
 	
+	$("#attach").on("click", function() { $("#fileInput").click(); });
+	$("#fileInput").on("change", function() {
+		var file = this.files[0];
+		if (!file) return;
+		var formData = new FormData();
+		formData.append("file", file);
+		var opts = { method: "POST", body: formData, credentials: "same-origin" };
+		var token = localStorage.getItem("ebookChatToken");
+		if (token) opts.headers = { "Authorization": "Bearer " + token };
+		fetch("/api/files/upload", opts)
+			.then(function(r) {
+				if (r.status === 403) throw new Error("Upload blocked by policy.");
+				if (!r.ok) throw new Error("Upload failed.");
+				return r.json();
+			})
+			.then(function(data) {
+				attachedFileId = data.fileId;
+				attachedFileName = data.filename || "file";
+				var sizeStr = formatSize(data.sizeBytes || 0);
+				var msg = "Attached: " + attachedFileName + " (" + sizeStr + ")";
+				if (data.dlpWarning) msg += " \u26a0 DLP warning";
+				if (data.dlpRequireApproval) msg += " \u26a0 Sensitive content \u2013 approval may be required.";
+				$attachedFile.show().text(msg);
+			})
+			.catch(function(err) {
+				errorMessage(err.message || "File upload failed.");
+			});
+		this.value = "";
+	});
+
 	inputMessage.on("keypress", checkEnter).focus();
 	btnSend.on("click", sendMessage);
 	btnDisconnect.on("click", disconnect);

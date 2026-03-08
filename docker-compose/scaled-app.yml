@@ -1,0 +1,74 @@
+# T6.1.3: Two app replicas behind a load balancer (sticky session recommended for WebSocket).
+# Usage: docker-compose -f docker-compose/dependencies.yml -f docker-compose/scaled-app.yml up
+# (Build JAR first: mvn -f ebook-chat/pom.xml package -DskipTests; JAR path in volumes must match.)
+# Note: When using with dependencies.yml, consider stopping the single ebook-chat-app service if you only want the scaled instances.
+
+version: "3"
+
+services:
+  ebook-chat-app-1:
+    image: eclipse-temurin:8-jdk
+    container_name: ebook-chat-app-1
+    depends_on:
+      - mysql
+      - cassandra
+      - redis
+      - rabbitmq-stomp
+    working_dir: /app
+    volumes:
+      - ../ebook-chat/target/ebook-chat-1.0.1-SNAPSHOT.jar:/app/app.jar:ro
+    command: >
+      java -jar /app/app.jar
+      --server.port=8080
+      --spring.datasource.url=jdbc:mysql://mysql:3306/ebook_chat?useSSL=false&allowPublicKeyRetrieval=true
+      --spring.datasource.username=root
+      --spring.datasource.password=root
+      --spring.redis.host=redis
+      --spring.redis.port=6379
+      --spring.rabbitmq.host=rabbitmq-stomp
+      --spring.rabbitmq.port=5672
+      --spring.rabbitmq.username=guest
+      --spring.rabbitmq.password=guest
+      --spring.data.cassandra.contact-points=cassandra
+      --spring.data.cassandra.port=9042
+    expose:
+      - "8080"
+
+  ebook-chat-app-2:
+    image: eclipse-temurin:8-jdk
+    container_name: ebook-chat-app-2
+    depends_on:
+      - mysql
+      - cassandra
+      - redis
+      - rabbitmq-stomp
+    working_dir: /app
+    volumes:
+      - ../ebook-chat/target/ebook-chat-1.0.1-SNAPSHOT.jar:/app/app.jar:ro
+    command: >
+      java -jar /app/app.jar
+      --server.port=8080
+      --spring.datasource.url=jdbc:mysql://mysql:3306/ebook_chat?useSSL=false&allowPublicKeyRetrieval=true
+      --spring.datasource.username=root
+      --spring.datasource.password=root
+      --spring.redis.host=redis
+      --spring.redis.port=6379
+      --spring.rabbitmq.host=rabbitmq-stomp
+      --spring.rabbitmq.port=5672
+      --spring.rabbitmq.username=guest
+      --spring.rabbitmq.password=guest
+      --spring.data.cassandra.contact-points=cassandra
+      --spring.data.cassandra.port=9042
+    expose:
+      - "8080"
+
+  lb:
+    image: nginx:alpine
+    container_name: ebook-chat-lb
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx-scaled.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - ebook-chat-app-1
+      - ebook-chat-app-2

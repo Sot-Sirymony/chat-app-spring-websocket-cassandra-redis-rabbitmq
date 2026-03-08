@@ -22,12 +22,30 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
+		<guava.version>19.0</guava.version>
+		<!-- Set -DskipITs=true to skip integration tests (e.g. when Docker is not available for Testcontainers) -->
+		<skipITs>false</skipITs>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Force Guava 25.1 for Cassandra driver (FutureFallback removed in 26+) -->
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -52,6 +70,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-cassandra</artifactId>
+		</dependency>
+		<!-- Java 17: Cassandra driver needs Guava with FutureFallback (removed in Guava 26+) -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.session</groupId>
@@ -126,6 +149,41 @@
 			<artifactId>netty-transport-native-epoll</artifactId>
 			<version>4.1.7.Final</version>
 		</dependency>
+		<!-- JWT for API/WebSocket token auth (BR-1.1) -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.11.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.11.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.11.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- MinIO (BR-3.3) S3-compatible object storage for file uploads -->
+		<dependency>
+			<groupId>io.minio</groupId>
+			<artifactId>minio</artifactId>
+			<version>8.5.7</version>
+		</dependency>
+		<!-- Java 17+: JAXB was removed from JDK; required by Hibernate/JPA -->
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>2.3.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -133,6 +191,10 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<!-- Java 17+: allow Spring/CGLIB to access internal JDK APIs -->
+					<jvmArguments>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED</jvmArguments>
+				</configuration>
 			</plugin>
 
 			<plugin>
@@ -142,6 +204,8 @@
 					<includes>
 						<include>**/UnitTestsSuite.java</include>
 					</includes>
+					<!-- Java 17+: allow Mockito/cglib to access internal JDK APIs -->
+					<argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED</argLine>
 				</configuration>
 			</plugin>
 
@@ -149,10 +213,17 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<configuration>
+					<skipITs>${skipITs}</skipITs>
 					<includes>
 						<include>**/UnitTestsSuite.java</include>
 						<include>**/IntegrationTestsSuite.java</include>
 					</includes>
+					<argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED</argLine>
+					<!-- Mac Docker Desktop: socket often at ~/.docker/run/docker.sock so Testcontainers can connect -->
+					<environmentVariables>
+						<DOCKER_HOST>unix://${user.home}/.docker/run/docker.sock</DOCKER_HOST>
+						<TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE>${user.home}/.docker/run/docker.sock</TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE>
+					</environmentVariables>
 				</configuration>
 			</plugin>
 		</plugins>

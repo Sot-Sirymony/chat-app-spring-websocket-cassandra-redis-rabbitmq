@@ -1,0 +1,8 @@
+# TP.6: Presidio Analyzer for DLP (BR-4.2). Run: docker-compose -f presidio.yml up -d
+# App connects to http://localhost:5002 when ebook.chat.presidio.enabled=true
+services:
+  presidio-analyzer:
+    image: microsoft/presidio-analyzer:latest
+    ports:
+      - "5002:3000"
+    # Presidio analyzer listens on 3000; no health endpoint in minimal image
