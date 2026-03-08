@@ -102,7 +102,7 @@ $(document).ready(function() {
 	var stompClient = null;
 	var socket = null;
 	var chatRoomId = /*[[${chatRoom.id}]]*/;
-	var roomClassification = /*[[${chatRoom.classification != null ? chatRoom.classification.name() : 'PUBLIC'}]]*/ 'PUBLIC';
+	var roomClassification = /*[[${chatRoom.classification != null ? chatRoom.classification.name() : "PUBLIC"}]]*/ 'PUBLIC';
 	var inputMessage = $("#message");
 	var btnSend = $("#send");
 	var btnDisconnect = $("#disconnect");

@@ -46,6 +46,14 @@ $ wget https://github.com/jorgeacetozi/ebook-chat-app-spring-websocket-cassandra
 
 5. Navigate to `http://localhost:8080` and have fun!
 
+# Login credentials
+
+**Admin (for UI testing):** username **`admin`**, password **`admin`**. Seeded in `ebook-chat/src/main/resources/db/migration/V1__init.sql`.
+
+**Test user (non-admin, ROLE_USER only):** username **`user`**, password **`password`**. Seeded in `V5__add_test_user.sql`. Use this to test behavior without admin privileges (e.g. no access to `/analytics`, limited room creation).
+
+You can also create a new account from the login page.
+
 # Basic Usage
 
 1. Sign in with username **admin** and password **admin**

@@ -21,6 +21,27 @@ Quick reference for test status and how to run tests. Update the **Last run** an
 
 ---
 
+## Login credentials (UI testing)
+
+**Admin (seeded in `V1__init.sql`):**
+
+| Field      | Value   |
+|-----------|---------|
+| Username  | `admin` |
+| Password  | `admin` |
+
+**Test user – non-admin (seeded in `V5__add_test_user.sql`):**
+
+| Field      | Value       |
+|-----------|-------------|
+| Username  | `user`      |
+| Password  | `password`  |
+
+- **UI:** http://localhost:8080 — use the form or create a new account via “Or create an account”.
+- **Admin** has `ROLE_ADMIN` (access to `/analytics`, create chat rooms). **Test user** has `ROLE_USER` only. New accounts get `ROLE_USER`.
+
+---
+
 ## Unit tests (66 total)
 
 Run: `mvn test` (runs `UnitTestsSuite`).
