@@ -52,6 +52,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	        .headers().frameOptions().disable()
 	        .and()
 	        .authorizeRequests()
+	        	.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 	        	.antMatchers("/login", "/new-account", "/", "/api/auth/token", "/api/auth/register").permitAll()
 	        	.antMatchers("/ws/**").permitAll()
 	        	.antMatchers("/approvals").authenticated()

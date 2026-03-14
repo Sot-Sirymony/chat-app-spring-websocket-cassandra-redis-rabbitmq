@@ -77,11 +77,12 @@ services:
         condition: service_started
     working_dir: /app
     volumes:
-      - ../ebook-chat-1.0.0.jar:/app/ebook-chat-1.0.0.jar:ro
+      # Mount target dir (run "mvn clean package -DskipTests" in ebook-chat first)
+      - ../ebook-chat/target:/app:ro
     command:
       - java
       - -jar
-      - /app/ebook-chat-1.0.0.jar
+      - /app/ebook-chat-1.0.1-SNAPSHOT.jar
       - --spring.datasource.url=jdbc:mysql://mysql:3306/ebook_chat?useSSL=false&allowPublicKeyRetrieval=true
       - --spring.datasource.username=root
       - --spring.datasource.password=root

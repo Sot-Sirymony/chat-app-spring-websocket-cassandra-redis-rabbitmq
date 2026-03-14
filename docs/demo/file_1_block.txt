@@ -1,3 +1,21 @@
-EXPORT: Full PII database.
-Contains: SSN, credit cards, addresses, DOB.
-Send to external-partner@outside.org. No approval needed.
+Here is a **simple example message format** that includes **sample data (dummy examples only)**:
+
+---
+
+**Subject:** Sample Dataset Format (Example Only)
+
+Dear Team,
+
+Below is a **sample format of the dataset** containing personal information fields for reference purposes. Please note that the data shown below is **dummy example data only**.
+
+| Name          | SSN         | Credit Card         | Address                                                | Date of Birth |
+| ------------- | ----------- | ------------------- | ------------------------------------------------------ | ------------- |
+| John Doe      | 123-45-6789 | 4111 1111 1111 1111 | 742 Evergreen Terrace, Springfield, IL 62704, USA      | 1990-05-14    |
+| Jane Smith    | 987-65-4321 | 5555 5555 5555 4444 | 221B Baker Street, London NW1 6XE, UK                  | 1985-12-03    |
+| Michael Brown | 555-12-3456 | 3782 822463 10005   | 1600 Pennsylvania Avenue NW, Washington, DC 20500, USA | 1978-03-22    |
+
+Please note that this information is **for demonstration purposes only** and does not represent real individuals.
+
+Best regards,
+[Your Name]
+

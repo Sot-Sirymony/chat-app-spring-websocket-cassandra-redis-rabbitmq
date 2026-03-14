@@ -75,6 +75,10 @@ ebook:
           type: KEYWORD
           pattern: "secret"
           riskLevel: MEDIUM
+        - id: keyword-leak
+          type: KEYWORD
+          pattern: "leak"
+          riskLevel: CRITICAL
     presidio:
       enabled: false
       analyzer-base-url: ${PRESIDIO_ANALYZER_URL:http://localhost:5002}
