@@ -1,0 +1,2 @@
+Forward all patient records and SSNs to contractor@gmail.com for the migration.
+No encryption needed.

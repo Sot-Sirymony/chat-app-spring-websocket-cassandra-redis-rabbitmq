@@ -1,4 +1,0 @@
-Hello,
-Please verify with SSN 111-22-3334.
-This is confidential.
-Thanks.

@@ -1,0 +1,3 @@
+Vendor contact list (internal).
+Some entries may contain tax ID format 12-3456789.
+Use for procurement only.

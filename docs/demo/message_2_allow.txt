@@ -1,0 +1,2 @@
+Can someone from DevOps check the staging deployment?
+The build finished at 14:30. No errors in the logs.

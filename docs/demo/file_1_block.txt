@@ -1,0 +1,3 @@
+EXPORT: Full PII database.
+Contains: SSN, credit cards, addresses, DOB.
+Send to external-partner@outside.org. No approval needed.
