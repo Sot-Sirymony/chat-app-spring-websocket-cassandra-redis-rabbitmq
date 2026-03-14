@@ -54,11 +54,17 @@ public class ChatRoom {
 	public List<ChatRoomUser> getConnectedUsers() {
 		return connectedUsers;
 	}
+	/** Add user only if not already in the list (by username), so double-join does not duplicate. */
 	public void addUser(ChatRoomUser user) {
-		this.connectedUsers.add(user);
+		if (user == null || user.getUsername() == null) return;
+		boolean already = connectedUsers.stream()
+				.anyMatch(u -> user.getUsername().equals(u.getUsername()));
+		if (!already) this.connectedUsers.add(user);
 	}
+	/** Remove all entries for this username (handles any prior duplicates). */
 	public void removeUser(ChatRoomUser user) {
-		this.connectedUsers.remove(user);
+		if (user == null || user.getUsername() == null) return;
+		connectedUsers.removeIf(u -> user.getUsername().equals(u.getUsername()));
 	}
 	public int getNumberOfConnectedUsers(){
 		return this.connectedUsers.size();

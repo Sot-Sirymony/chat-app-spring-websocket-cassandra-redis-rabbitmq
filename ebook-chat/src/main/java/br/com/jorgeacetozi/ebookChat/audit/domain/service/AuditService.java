@@ -55,6 +55,24 @@ public class AuditService {
 		return java.util.Collections.emptyList();
 	}
 
+	/**
+	 * Events for risky message analysis: SEND_MESSAGE with result=deny or DLP/risk-related ruleId.
+	 * Use for dashboards and auditing blocked/warned message attempts.
+	 */
+	public List<AuditEvent> findMessageRiskEvents(String username, Date from, Date to) {
+		List<AuditEvent> events = findEvents(username, from, to);
+		return events.stream()
+				.filter(e -> "SEND_MESSAGE".equals(e.getAction()))
+				.filter(e -> "deny".equals(e.getResult()) || isDlpOrRiskRule(e.getRuleId()))
+				.collect(Collectors.toList());
+	}
+
+	private static boolean isDlpOrRiskRule(String ruleId) {
+		if (ruleId == null) return false;
+		String r = ruleId.toLowerCase();
+		return r.startsWith("dlp") || r.contains("risk");
+	}
+
 	private List<AuditEvent> filterByDateRange(List<AuditEvent> list, Date from, Date to) {
 		return list.stream()
 				.filter(e -> (from == null || !e.getTimestamp().before(from)) && (to == null || !e.getTimestamp().after(to)))

@@ -1,0 +1,25 @@
+# Build outputs
+target/
+*.jar
+!**/src/**/lib/*.jar
+
+# Node
+node_modules/
+frontend/node_modules/
+e2e/node_modules/
+.next/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and env
+*.log
+.env
+.env.local

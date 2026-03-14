@@ -141,3 +141,8 @@ ebook:
       enabled: false
       analyzer-base-url: http://localhost:5002
       timeout-ms: 3000
+
+# Optional: redirect Thymeleaf UI paths to Next.js frontend (e.g. when React is default)
+app:
+  redirect-to-frontend: false
+  frontend-url: http://localhost:3000

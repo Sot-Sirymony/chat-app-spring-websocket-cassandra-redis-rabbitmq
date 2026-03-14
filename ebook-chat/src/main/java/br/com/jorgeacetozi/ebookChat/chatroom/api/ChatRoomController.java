@@ -163,6 +163,7 @@ public class ChatRoomController {
 		}
 		if (dlpResult.getAction() == DlpAction.WARN) {
 			instantMessage.setDlpWarning(dlpResult.getMessage());
+			auditService.logEvent(principal.getName(), "SEND_MESSAGE", chatRoomId, "allow", "dlp-WARN", dlpResult.getMessage());
 		}
 		String fileRef = instantMessage.getFileRef();
 		if (fileRef != null && !fileRef.isEmpty()) {

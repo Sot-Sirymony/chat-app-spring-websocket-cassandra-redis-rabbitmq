@@ -22,7 +22,7 @@ public class CassandraInstantMessageService implements InstantMessageService {
 	public void appendInstantMessageToConversations(InstantMessage instantMessage) {
 		if (instantMessage.isFromAdmin() || instantMessage.isPublic()) {
 			ChatRoom chatRoom = chatRoomService.findById(instantMessage.getChatRoomId());
-			
+			if (chatRoom == null || chatRoom.getConnectedUsers() == null) return;
 			chatRoom.getConnectedUsers().forEach(connectedUser -> {
 				instantMessage.setUsername(connectedUser.getUsername());
 				instantMessageRepository.save(instantMessage);

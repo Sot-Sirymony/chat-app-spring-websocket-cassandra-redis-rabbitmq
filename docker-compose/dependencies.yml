@@ -95,6 +95,8 @@ services:
       - --spring.data.cassandra.port=9042
       - --ebook.chat.minio.endpoint=http://minio:9000
       - --ebook.chat.minio.bucket=ebook-chat-files
+      - --ebook.chat.relay.host=rabbitmq-stomp
+      - --ebook.chat.relay.port=61613
     ports:
       - "8080:8080"
 

@@ -10,6 +10,7 @@ Quick reference for test status and how to run tests. Update the **Last run** an
 |--------------------|-------|----------|------------|--------------------------------|
 | **Unit**           | 66    | ✅ Pass  | 2026-03-08 | All phases                     |
 | **Integration**    | 5 classes | ⏸ Skipped | —        | Requires Docker (Testcontainers) |
+| **E2E (Playwright)** | 29  | ⏸ Backend required | —   | `cd e2e && npm test`; backend at :8080 |
 
 **Commands**
 
@@ -18,6 +19,7 @@ Quick reference for test status and how to run tests. Update the **Last run** an
 | Unit tests only         | `mvn test`                       |
 | Unit + integration      | `mvn verify`                     |
 | Verify without ITs       | `mvn verify -DskipITs=true`      |
+| E2E UI tests            | Start backend, then `cd e2e && npm test` |
 
 ---
 
@@ -89,6 +91,19 @@ Run: `mvn verify` (no `-DskipITs=true`). **Requires Docker** for Testcontainers 
 **To run integration tests:** Ensure Docker Desktop is running and the daemon is reachable; then run `mvn verify` (or upgrade Testcontainers if still failing on Mac).
 
 **To skip integration tests:** `mvn verify -DskipITs=true` — unit tests run, integration tests skipped, build passes.
+
+---
+
+## E2E UI tests (Playwright)
+
+Run from repo root after starting the backend (and dependencies):
+
+```bash
+cd e2e && npm install && npx playwright install chromium && npm test
+```
+
+- **Requires:** Backend at http://localhost:8080 (Spring Boot + MySQL, Redis, Cassandra, RabbitMQ).
+- **Tests:** Auth (login, logout, registration), navigation, chat list, create room, join room, chat room (WebSocket), approvals, analytics. See `e2e/README.md` and `docs/UI-Test-Cases.md`.
 
 ---
 

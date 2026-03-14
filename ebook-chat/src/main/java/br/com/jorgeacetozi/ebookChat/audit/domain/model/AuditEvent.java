@@ -3,6 +3,7 @@ package br.com.jorgeacetozi.ebookChat.audit.domain.model;
 import java.util.Date;
 
 import org.springframework.cassandra.core.PrimaryKeyType;
+import org.springframework.data.cassandra.mapping.Column;
 import org.springframework.data.cassandra.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.mapping.Table;
 
@@ -19,6 +20,7 @@ public class AuditEvent {
 	private String action;
 	private String resource;
 	private String result; // allow, deny
+	@Column("rule_id")
 	private String ruleId;
 	private String details;
 

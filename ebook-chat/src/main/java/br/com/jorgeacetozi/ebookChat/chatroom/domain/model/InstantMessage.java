@@ -3,6 +3,7 @@ package br.com.jorgeacetozi.ebookChat.chatroom.domain.model;
 import java.util.Date;
 import org.springframework.cassandra.core.Ordering;
 import org.springframework.cassandra.core.PrimaryKeyType;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.cassandra.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.mapping.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,10 +27,12 @@ public class InstantMessage {
 	private String toUser;
 	private String text;
 
-	/** Transient: DLP warning message for client (not persisted). BR-4.1 */
-	private transient String dlpWarning;
-	/** Transient: file id from MinIO upload for attach/send (not persisted). BR-3.3 */
-	private transient String fileRef;
+	/** Not persisted in Cassandra; for client DLP warning only. BR-4.1 */
+	@Transient
+	private String dlpWarning;
+	/** Not persisted in Cassandra; for file attach/send only. BR-3.3 */
+	@Transient
+	private String fileRef;
 
 	public InstantMessage() { 
 		this.date = new Date();

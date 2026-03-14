@@ -1,10 +1,12 @@
 package br.com.jorgeacetozi.ebookChat.fileapproval.api;
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,13 +44,15 @@ public class FileTransferRequestController {
 
 	@PostMapping("/{id}/approve")
 	@Secured("ROLE_ADMIN")
-	public void approve(@PathVariable String id, Principal principal) {
+	public ResponseEntity<Map<String, Boolean>> approve(@PathVariable String id, Principal principal) {
 		service.approve(id, principal != null ? principal.getName() : "admin");
+		return ResponseEntity.ok(Collections.singletonMap("success", true));
 	}
 
 	@PostMapping("/{id}/reject")
 	@Secured("ROLE_ADMIN")
-	public void reject(@PathVariable String id, Principal principal) {
+	public ResponseEntity<Map<String, Boolean>> reject(@PathVariable String id, Principal principal) {
 		service.reject(id, principal != null ? principal.getName() : "admin");
+		return ResponseEntity.ok(Collections.singletonMap("success", true));
 	}
 }

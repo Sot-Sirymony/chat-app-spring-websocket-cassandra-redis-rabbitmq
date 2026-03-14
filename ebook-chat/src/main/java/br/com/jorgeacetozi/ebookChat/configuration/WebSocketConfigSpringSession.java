@@ -31,7 +31,9 @@ public class WebSocketConfigSpringSession extends AbstractSessionWebSocketMessag
 	}
 
 	protected void configureStompEndpoints(StompEndpointRegistry registry) {
-		registry.addEndpoint("/ws").withSockJS();
+		registry.addEndpoint("/ws")
+			.setAllowedOrigins("http://localhost:3000")
+			.withSockJS();
 	}
 
 	public void configureMessageBroker(MessageBrokerRegistry registry) {

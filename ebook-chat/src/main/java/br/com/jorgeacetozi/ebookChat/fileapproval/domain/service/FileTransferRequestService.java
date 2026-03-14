@@ -97,6 +97,8 @@ public class FileTransferRequestService {
 
 	private void deliverContent(FileTransferRequest req) {
 		if (req.getRoomId() == null) return;
+		// Room may no longer exist (e.g. Redis cleared); skip delivery to avoid NPE but approval still succeeds
+		if (chatRoomService.findById(req.getRoomId()) == null) return;
 		String text = req.getContentText() != null ? req.getContentText() : "";
 		if (req.getFileRef() != null && !req.getFileRef().isEmpty()) {
 			text = text + " [Download attachment](/api/files/" + req.getFileRef() + "/download)";
